@@ -1,19 +1,31 @@
 # Udacity  Deep Reinforcement Learning
 
-## Project 2 - Continuous Control
-### Reacher Enivronment
+## Project 3 - Collaboration and Competition
 
-[![Alt text](https://img.youtube.com/vi/34Gu98Q33G4/0.jpg)](https://www.youtube.com/watch?v=34Gu98Q33G4&loop=1)
+### Tennis Enivronment
+
+[![Alt text](https://img.youtube.com/vi/BIa1UGzsWWc/0.jpg)](https://www.youtube.com/watch?v=BIa1UGzsWWc&loop=1)
 
 ### Project Details 
 
-For this project, we have been given the task of training an agent to conrol twenty double jointed robot arms, to main contact with a moving target. The goal is to move each arm to maintain contact with the moving ( and sometimes stationary ) object for as long as possible. A reward of +0.1 is given for each step that the arms hand ( feeler ) is touching the object.
+For this project, two agents need to be trained to play tennis ( on a 2d court ). Each agent has control of the racket and can move either forward or away from the net, or jumping.
 
 The world is  provided as a virtual environment using Unity Machine Learning Agents ( https://github.com/Unity-Technologies/ml-agents).
 
-For each arm, the environment provides an observation of the current state  , and returns  an action vector., and reward. The observation space consists of 33 variables corresponding to position, rotation, velocity, and angular velocities of the arm. Each action is a vector with four numbers, corresponding to torque applicable to two joints. Every entry in the action vector should be a number between  -1 and 1.  This is repeated for evey arm so there are 20x33 states , 20x4 actions and 20x1 rewards, and 20x1 done flags ( we assume for this project if one agent is done , they will all done ).
+The observation space consists of 8 variables corresponding to the position and velocity of the ball and racket. Each agent receives its own, local observation. Two continuous actions are available, corresponding to movement toward (or away from) the net, and jumping.
 
-The environment is considered solved , when the average episode score over the last 100 episodes is at least 30. For each episode , the sum of rewards ( observed without discounting ) for each arm is accumulated , the episode score is the mean over all these.
+If an agent hits the ball over the net, it receives a reward of +0.1. If an agent lets a ball hit the ground or hits the ball out of bounds, it receives a reward of -0.01. Thus, the goal of each agent is to keep the ball in play.
+
+
+
+The task is episodic, and in order to solve the environment, your agents must get an average score of +0.5 (over 100 consecutive episodes, after taking the maximum over both agents). Specifically,
+
+- After each episode, we add up the rewards that each agent received (without discounting), to get a score for each agent. This yields 2 (potentially different) scores. We then take the maximum of these 2 scores.
+- This yields a single **score** for each episode.
+
+The environment is considered solved, when the average (over 100 episodes) of those **scores** is at least +0.5.
+
+
 
 The agent code is required to be written in  Python 3 and use the Pytorch framework.. It interacts with a custom provided unity app, that has an interface using the open-source Unity plugin (ML-Agents). For this project it is using ML-Agents version 0.4.0.
 
@@ -51,34 +63,34 @@ The agent code is required to be written in  Python 3 and use the Pytorch framew
 
 ### Instructions
 
-The training code is found in the *agent.py* file , along with helper functions envhelper.py and models.py. 
+The code is found in the following files ,agent_training.py ,	models.py and envhelper.py.
 
 For convenince the interface to these is contained in the *Trainer.ipynb* jupyter/ipython notebook, where one can experemint with the Hyperparameters and record and visualize the results.
 
-You need to run code in  ***section 0*** first! ,  but can then run any of sections 1,2 and 3. The unity agents are a bit buggy inside anotebook, so you may have to restart the kernel after each section.
+You need to run code in  ***section 0*** first! ,  but can then run any of sections 1,2 and 3. The unity agents are a bit buggy inside a notebook, so you may have to restart the jupyter kernel after each section. 
 
 **0 . Setup **
 
 Firstly, update the variable AGENT_FILE to match the path where you have downloaded the the binary unity agent code, for your OS.
 
-If desired to try new hyperparameters, just change them in the CONFIG_PARAMS class object.
+If desired to try new hyperparameters, just change them in the ConfigParams class object.
 
-And run the cells in this section.
+And then  run the cells in this section.
 
 **1. Training** 
 
 Training can be done  by simply executing the code in this section. The following parameters can be adjusted.
 
-A plot of scores obtained during training is produced. And if a successful solution is found the model weights are save id the model.pth file.
+A plot of scores obtained during training is produced. And if a successful solution is found the model weights are saved , with the names `model_actor_N.pth,model_critic_N.pth where N is the agent number. The critic weights are not strictly needed for replay.` 
 
 **2. Validation** 
 
-Just to prove the model, we can load the agent again ( with different seed ) , and run another 100 episodes, and visualize the results.
+Just to prove the model is indeed solved, we can load the agent again ( with different seed ) , and run another 100 episodes, and visualize the results.
 
-This is usefull todo as its possible the model may have worsened during the later stages of training. ( see my Report.pdf - for more information).
+This is usefull todo as its possible the model may have worsened during the later stages of training. 
 
 **3. Play**
 
-For completness, it is possible to play a single episode with the trained model weights. By default with the viewer window and at normal speed - but can be changed. It will print out the final score at the end of each run.
+For completness ( and visualing the end result), it is possible to play a single episode with the trained model weights. By default with the viewer window and at normal speed - but can be changed. It will print out the final score at the end of each run.
 
 
