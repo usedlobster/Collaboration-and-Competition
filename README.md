@@ -12,11 +12,11 @@ For this project, two agents need to be trained to play tennis ( on a 2d court )
 
 The world is  provided as a virtual environment using Unity Machine Learning Agents ( https://github.com/Unity-Technologies/ml-agents).
 
-The observation space consists of 8 variables corresponding to the position and velocity of the ball and racket. Each agent receives its own, local observation. Two continuous actions are available, corresponding to movement toward (or away from) the net, and jumping.
+The observation space consists of 8 variables corresponding to the position and velocity of the ball and racket, stacked over 3 observations given a total of 24 inputs. Each agent receives its own, local observation. 
 
-If an agent hits the ball over the net, it receives a reward of +0.1. If an agent lets a ball hit the ground or hits the ball out of bounds, it receives a reward of -0.01. Thus, the goal of each agent is to keep the ball in play.
+Two action variables are available, corresponding to movement toward (or away from) the net, and jumping. These actions are in the [-1,+1] interval.
 
-
+The score is calculated as follows, if an agent hits the ball over the net, it receives a reward of +0.1. If an agent lets a ball hit the ground or hits the ball out of bounds, it receives a reward of -0.01. Thus, the goal of each agent is to keep the ball in play.
 
 The task is episodic, and in order to solve the environment, your agents must get an average score of +0.5 (over 100 consecutive episodes, after taking the maximum over both agents). Specifically,
 
@@ -50,38 +50,40 @@ The agent code is required to be written in  Python 3 and use the Pytorch framew
 
 3. Download the correct environment for your operating system.
 
-    - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Linux.zip)
-    - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher.app.zip)
-    - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Windows_x86.zip)
-    - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Windows_x86_64.zip)
+    - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux.zip)
+    - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis.app.zip)
+    - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Windows_x86.zip)
+    - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Windows_x86_64.zip)
 
     (*For Windows users*) Check out [this link](https://support.microsoft.com/en-us/help/827218/how-to-determine-whether-a-computer-is-running-a-32-bit-version-or-64) if you need help with determining if your computer is running a 32-bit version or 64-bit version of the Windows operating system.
 
-    (*For AWS*) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/one_agent/Reacher_Linux_NoVis.zip) (version 1) or [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Linux_NoVis.zip) (version 2) to obtain the "headless" version of the environment. You will **not** be able to watch the agent without enabling a virtual screen, but you will be able to train the agent. (*To watch the agent, you should follow the instructions to enable a virtual screen, and then download the environment for the \**Linux** operating system above.*)
+    (*For AWS*) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux_NoVis.zip) to obtain the "headless" version of the environment. You will **not** be able to watch the agent without enabling a virtual screen, but you will be able to train the agent. (*To watch the agent, you should follow the instructions to enable a virtual screen, and then download the environment for the \**Linux** operating system above.*)
 
 4. Unzip (or decompress) the file, into the same folder this repository has been saved.
 
 ### Instructions
 
-The code is found in the following files ,agent_training.py ,	models.py and envhelper.py.
+The main code functions are found in the following files , agent_training.py  , models.py and envhelper.py.
 
-For convenince the interface to these is contained in the *Trainer.ipynb* jupyter/ipython notebook, where one can experemint with the Hyperparameters and record and visualize the results.
+For convenince the interface to these is contained in the *Trainer.ipynb* jupyter/ipython notebook, where one can experemint with the Hyperparameters and record and visualize the results. Also included main.py which you can also edit and just change the last line to run either train(), validate() or play() . 
 
-You need to run code in  ***section 0*** first! ,  but can then run any of sections 1,2 and 3. The unity agents are a bit buggy inside a notebook, so you may have to restart the jupyter kernel after each section. 
+You need to run code in  ***section 0*** first, but can then run any of sections 1,2 and 3. The unity agents are a bit buggy inside a notebook, so you may have to restart the jupyter kernel after each section.
 
 **0 . Setup **
 
-Firstly, update the variable AGENT_FILE to match the path where you have downloaded the the binary unity agent code, for your OS.
+Firstly, update the variable AGENT_FILE to match the path where you have downloaded the the binary unity agent code, for your particular OS.
 
-If desired to try new hyperparameters, just change them in the ConfigParams class object.
+If desired to try new hyperparameters ( some arent technically hyper ) , just change them in the 
 
-And then  run the cells in this section.
+ConfigParams class object.
+
+And then  run the cells in either of these sections ( the model weights files need to be present if not training again ). 
 
 **1. Training** 
 
 Training can be done  by simply executing the code in this section. The following parameters can be adjusted.
 
-A plot of scores obtained during training is produced. And if a successful solution is found the model weights are saved , with the names `model_actor_N.pth,model_critic_N.pth where N is the agent number. The critic weights are not strictly needed for replay.` 
+A plot of scores obtained during training is produced. And if a successful solution is found the model weights are saved , with the names `(model)_actor_(N).pth` and `(model)_critic_(N).pth` where N is the agent number, and (model) the f. The critic weights are not strictly needed after training. 
 
 **2. Validation** 
 
