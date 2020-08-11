@@ -1,21 +1,32 @@
 from unityagents import UnityEnvironment
 
-'''
-    A very simple / basic class to abstract the UnityEnivronment even further
-'''
-
 
 class UnityEnvHelper:
+    """
+        A very simple class to abstract the UnityEnvironment class even further
+    """
 
     # constructor - give file_name of agent environment
 
     def __init__(self, file_name, no_graphics=True, seed=8888):
+        """
+
+        Parameters
+        ----------
+        file_name       -    name of unity agent executable
+        no_graphics     -    don't display a viewer ?
+        seed            -    random seed
+        """
 
         self.seed = seed
-        self.uenv = UnityEnvironment(file_name=file_name, seed=self.seed, no_graphics=no_graphics)
+        self.ue_info = None
+        try:
+            self.uenv = UnityEnvironment(file_name=file_name, seed=self.seed, no_graphics=no_graphics)
+        except:
+            self.uenv = None
+            raise Exception("No Unity Environment")
 
         # pick the first agent as the brain
-
         self.brain_name = self.uenv.brain_names[0]
         self.brain = self.uenv.brains[self.brain_name]
         # get the action space size
@@ -29,31 +40,26 @@ class UnityEnvHelper:
         self.num_agents = len(self.ue_info.agents)
 
     def __del__(self):
-
-        # make sure we close the environment
-        if self.uenv != None:
-            self.uenv.close()
+        self.close()
 
     def close(self):
-
-        if self.uenv != None:
+        """ close the environment """
+        if self.uenv is not None:
             self.uenv.close()
+
             self.uenv = None
 
     def reset(self, train_mode=True):
-
-        # tell the unity agent to restart an episode 
+        # tell the unity agent to restart an episode
         # training mode simple seems to run the simulation at full speed 
         self.ue_info = self.uenv.reset(train_mode=train_mode)[self.brain_name]
         return self.ue_info.vector_observations
 
     # we pass in current state for convenience 
     def step(self, state_now, action):
-
         # perform action on environment  and get observation
         self.ue_info = self.uenv.step(action)[self.brain_name]
         # return state , action , next state , reward and done flag
-        # slightly 
         return {
             'states': state_now,
             'actions': action,

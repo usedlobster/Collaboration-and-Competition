@@ -33,11 +33,17 @@ The agent code is required to be written in  Python 3 and use the Pytorch framew
 
 1.  Clone or (download and unzip)  this repository.
 
+    ```bash
+    $ git clone https://github.com/usedlobster/Collaboration-and-Competition.git
+    ```
+
+    ​
+
 2.  This project requires certain, library dependencies to be consistent - in particular the use of python >=3.6 , and a specific version of the ml_agents library version 0.4.0. These dependencies can be found in the pip requirements.txt file. 
 
     Different systems will vary, but an example configuration for setting up a conda environment  can be made as follows:-
 
-    ```
+    ```bash
     # create a conda enviroment 
     $ conda create --name drlnd python=3.6
     $ conda activate drlnd
@@ -63,7 +69,7 @@ The agent code is required to be written in  Python 3 and use the Pytorch framew
 
 ### Instructions
 
-The main code functions are found in the following files , agent_training.py  , models.py and envhelper.py.
+The main code functions are found in the following files , agent_training.py  , models.py, utils.py and envhelper.py.
 
 For convenince the interface to these is contained in the *Trainer.ipynb* jupyter/ipython notebook, where one can experemint with the Hyperparameters and record and visualize the results. Also included main.py which you can also edit and just change the last line to run either train(), validate() or play() . 
 
