@@ -12,7 +12,7 @@ class UnityEnvHelper:
     def __init__(self, file_name, no_graphics=True, seed=8888):
 
         self.seed = seed
-        self.uenv = UnityEnvironment(file_name=file_name, seed=self.seed, no_graphics=no_graphics  )
+        self.uenv = UnityEnvironment(file_name=file_name, seed=self.seed, no_graphics=no_graphics)
 
         # pick the first agent as the brain
 
@@ -31,12 +31,12 @@ class UnityEnvHelper:
     def __del__(self):
 
         # make sure we close the environment
-        if self.uenv !=None:
+        if self.uenv != None:
             self.uenv.close()
 
     def close(self):
 
-        if self.uenv !=None:
+        if self.uenv != None:
             self.uenv.close()
             self.uenv = None
 
@@ -48,18 +48,18 @@ class UnityEnvHelper:
         return self.ue_info.vector_observations
 
     # we pass in current state for convenience 
-    def step(self, state_now , action):
+    def step(self, state_now, action):
 
         # perform action on environment  and get observation
         self.ue_info = self.uenv.step(action)[self.brain_name]
         # return state , action , next state , reward and done flag
         # slightly 
         return {
-                'states': state_now,
-                'actions': action,
-                'rewards': self.reward(),
-                'next_states': self.state(),
-                'dones': self.done()
+            'states': state_now,
+            'actions': action,
+            'rewards': self.reward(),
+            'next_states': self.state(),
+            'dones': self.done()
         }
 
     def state(self):

@@ -2,6 +2,7 @@ import copy
 import os
 import random
 from collections import deque
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -14,30 +15,28 @@ def hidden_init(layer):
     lim = 1. / np.sqrt(fan_in)
     return (-lim, lim)
 
+
 '''
 	Actor class
 '''
+
 
 class Actor(nn.Module):
 
     def __init__(self, config):
         super(Actor, self).__init__()
 
-
         self.fc1 = nn.Linear(config.env.state_size, config.ACTOR_FC1_SIZE)
         self.fc2 = nn.Linear(config.ACTOR_FC1_SIZE, config.ACTOR_FC2_SIZE)
         self.fc3 = nn.Linear(config.ACTOR_FC2_SIZE, config.env.action_size)
         self.reset_parameters()
 
-
     def reset_parameters(self):
-
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2.weight.data.uniform_(*hidden_init(self.fc2))
         self.fc3.weight.data.uniform_(-3e-3, 3e-3)
 
-
-    # input is single agent state , and outputs single agent action 
+    # input is single agent state , and outputs single agent action
 
     def forward(self, state):
         x = F.relu(self.fc1(state))
@@ -56,9 +55,9 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
 
         in_z = (config.env.state_size + config.env.action_size) * config.env.num_agents
-        self.fc1 = nn.Linear( in_z, config.CRITIC_FC1_SIZE)
+        self.fc1 = nn.Linear(in_z, config.CRITIC_FC1_SIZE)
         self.fc2 = nn.Linear(config.CRITIC_FC1_SIZE, config.CRITIC_FC2_SIZE)
-        self.fc3 = nn.Linear(config.CRITIC_FC2_SIZE, 1 )
+        self.fc3 = nn.Linear(config.CRITIC_FC2_SIZE, 1)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -69,11 +68,12 @@ class Critic(nn.Module):
     # the input is all the states , and all the actions 
 
     def forward(self, state, action):
-    	# create combined state and action vector as one input vector
+        # create combined state and action vector as one input vector
         x = torch.cat((state, action), dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         return self.fc3(x)
+
 
 ''' 
     Ornstein-Uhlenbeck process.
@@ -81,8 +81,8 @@ class Critic(nn.Module):
 
 '''
 
-class OUNoise:
 
+class OUNoise:
 
     def __init__(self, size, mu=0., theta=0.15, sigma=0.2):
         """Initialize parameters and noise process."""
@@ -103,9 +103,11 @@ class OUNoise:
         self.state = x + dx
         return self.state
 
+
 '''
 	Replay Buffer
 '''
+
 
 class ReplayBuffer:
 
@@ -115,13 +117,13 @@ class ReplayBuffer:
         self.batch_size = config.BATCH_SIZE
 
     def add(self, obs):
-    	# simple just add observation 
+        # simple just add observation
         self.memory.append(obs)
 
     # idx is the agent number requesting this 
-    def sample(self,idx ):
+    def sample(self, idx):
 
-    	# get a sample 
+        # get a sample
         batch = random.sample(self.memory, k=self.config.BATCH_SIZE)
 
         # safe me writing self.config.device all the time 
@@ -132,33 +134,36 @@ class ReplayBuffer:
         # we could do something like [idx] + [ x in range( number_agents) if x !=idx ] for other cases !?
         # 
 
-        if ( idx == 0 ):
-            a_order = [0,1]
+        if (idx == 0):
+            a_order = [0, 1]
         else:
-            a_order = [1,0]
+            a_order = [1, 0]
 
         # this way the agent gets its own states first followed by the opponents
         # without this one agent will perform well, and the other will try to help 
-        
+
         # get the state / action / next_state samples
         b_s = [torch.from_numpy(np.vstack([b['states'][i] for b in batch])).float().to(dev) for i in a_order]
         b_a = [torch.from_numpy(np.vstack([b['actions'][i] for b in batch])).float().to(dev) for i in a_order]
-        b_ns= [torch.from_numpy(np.vstack([b['next_states'][i] for b in batch])).float().to(dev) for i in a_order]
+        b_ns = [torch.from_numpy(np.vstack([b['next_states'][i] for b in batch])).float().to(dev) for i in a_order]
 
         # get the rewards / dones flag's 
         # 
         # we didn't need to stack these first - but not changing now - as model loaded.
         b_r = [torch.from_numpy(np.vstack([b['rewards'][i] for b in batch])).float().to(dev) for i in a_order]
-        b_d = [torch.from_numpy(np.vstack([b['dones'][i] for b in batch]).astype(np.uint8)).float().to(dev) for i in a_order]
+        b_d = [torch.from_numpy(np.vstack([b['dones'][i] for b in batch]).astype(np.uint8)).float().to(dev) for i in
+               a_order]
 
-        return ( b_s , b_a , b_r[idx] , b_ns , b_d[idx] )
+        return (b_s, b_a, b_r[idx], b_ns, b_d[idx])
 
     def __len__(self):
-        return len( self.memory )
+        return len(self.memory)
+
 
 '''
 	DDPGAgent
 '''
+
 
 class DDPGAgent():
 
@@ -175,23 +180,22 @@ class DDPGAgent():
         # create the local / target critic network
         self.critic_local = Critic(config).to(config.device)
         self.critic_target = Critic(config).to(config.device)
-        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=config.LR_CRITIC , weight_decay = 0 )
+        self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=config.LR_CRITIC, weight_decay=0)
 
         # noise processing
         self.noise = OUNoise(config.env.action_size)
 
-    def step(self,idx ):
+    def step(self, idx):
 
-            experiences = self.config.replay.sample(idx)
-            self.learn(experiences)
-
+        experiences = self.config.replay.sample(idx)
+        self.learn(experiences)
 
     def act(self, state, add_noise=True):
-    	'''
-    		act() 
+        '''
+            act()
+            get predicted actions , for each state using actor_local
+        '''
 
-    		get predicted actions , for each state using actor_local 
-    	'''
         state = torch.from_numpy(state).float().to(self.config.device)
         self.actor_local.eval()
         with torch.no_grad():
@@ -205,8 +209,7 @@ class DDPGAgent():
     def reset(self):
         self.noise.reset()
 
-    def learn(self, experiences ):
-
+    def learn(self, experiences):
 
         states_list, actions_list, rewards, next_states_list, dones = experiences
         # create long tensor versions ( as got list of tensors so far )
@@ -229,8 +232,8 @@ class DDPGAgent():
         critic_loss.backward()
         self.critic_optimizer.step()
 
-       	# now the critic_local has been updated 
-       	# 
+        # now the critic_local has been updated
+        #
 
         actions_pred = [self.actor_local(states) for states in states_list]
         actions_pred_tensor = torch.cat(actions_pred, dim=1).to(self.config.device)
@@ -248,17 +251,17 @@ class DDPGAgent():
         
         '''
 
-     	for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
-            target_param.data.copy_( tau * local_param.data + (1.0 - tau) * target_param.data)
+        for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
+            target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
 
     '''
     	update both critic/local targets with  tau(τ) propotion of respective local
     '''
+
     def soft_update_all(self):
         # ----------------------- update target networks ----------------------- #
         self.soft_update(self.critic_local, self.critic_target, self.config.TAU)
         self.soft_update(self.actor_local, self.actor_target, self.config.TAU)
-
 
 
 class MADDPG:
@@ -271,12 +274,12 @@ class MADDPG:
         self.config.agents = [DDPGAgent(config) for x in range(config.env.num_agents)]
 
     def step(self, obs):
-    	'''
-    		we update every step as soon as the buffer is big enougth.
-    	'''
+        '''
+            we update every step as soon as the buffer is big enougth.
+        '''
         self.config.replay.add(obs)
         if len(self.config.replay) > self.config.BATCH_SIZE:
-            for i,a in enumerate( self.config.agents ):
+            for i, a in enumerate(self.config.agents):
                 a.step(i)
 
             for a in self.config.agents:
@@ -291,15 +294,15 @@ class MADDPG:
 
         return actions
 
-    def save_weights(self,filename):
+    def save_weights(self, filename):
 
         for index, agent in enumerate(self.config.agents):
-            torch.save(agent.actor_local.state_dict() , f'{filename}_actor_{index}.pth')
-            torch.save(agent.critic_local.state_dict(), f'{filename}_critic_{index}.pth' )
-            
-    def load_weights(self,name) :
+            torch.save(agent.actor_local.state_dict(), f'{filename}_actor_{index}.pth')
+            torch.save(agent.critic_local.state_dict(), f'{filename}_critic_{index}.pth')
 
-        for index, agent in enumerate(self.config.agents):   
+    def load_weights(self, name):
+
+        for index, agent in enumerate(self.config.agents):
             filename = f'{name}_actor_{index}.pth'
             if os.path.exists(filename):
                 agent.actor_local.load_state_dict(torch.load(filename))
